@@ -1,15 +1,26 @@
 recipes_list = []
 ingredients_list = []
 
+# Function to take recipe input
 def take_recipe():
-    name = input("Recipe name: ")
-    cooking_time = int(input("Cooking time in minutes: "))
-    ingredients = input("Ingredients (separated by a comma): ").split(", ")
+    # Function to process recipe input
+    name = str(input("Enter the name of the recipe: "))
+    
+    # Function to process cooking time input
+    cooking_time = int(input("Enter the cooking time (in minutes): "))
+
+    # Function to process ingredients input
+    ingredients = input("Enter the ingredients, separated by commas: ").split(',')
+    ingredients = [ingredient.strip() for ingredient in ingredients]  # Remove any extra spaces
+    
+    # Store the values in a dictionary
     recipe = {
         'name': name,
         'cooking_time': cooking_time,
         'ingredients': ingredients
     }
+    # Function to create and return the recipe dictionary
+
     return recipe
 
 n = int(input("How many recipes would you like to enter?: "))
