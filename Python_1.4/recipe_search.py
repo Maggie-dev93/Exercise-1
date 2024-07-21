@@ -49,6 +49,6 @@ except FileNotFoundError:
     print("No files match that name - please try again")
 except:
     print("Oops, there was an unexpected error")
-else:
-    file.close()
-    search_ingredients(data)
+finally:
+    if 'file' in locals():
+        file.close()
