@@ -3,17 +3,13 @@ import pickle
 
 # creates a recipe dictianary based on user input
 def take_recipe():
-       # Function to process recipe input
+    # Function to process recipe input
     name = str(input("Enter the recipe: "))
-       # Function to process cooking time input
+    # Function to process cooking time input
     cooking_time = int(input("Enter the cooking time: "))
-       # Function to process ingredients input
-    ingredients = [
-        ingredient.strip().capitalize()
-        for ingredient in input("Enter the ingredients separated by a comma: ").split(
-            ","
-        )
-    ]
+    # Function to process ingredients input
+    ingredients = input("Enter the ingredients, separated by commas: ").split(',')
+    ingredients = [ingredient.strip().capitalize() for ingredient in ingredients]
 
     # Calculate the difficulty
     difficulty = calc_difficulty(cooking_time, ingredients)
@@ -56,12 +52,14 @@ except:
     print("Oops! Something went wrong. Try again.")
     data = {"recipes_list": [], "all_ingredients": []}
 # This will close the file
-else:
-    file.close()
+
 # Extracts the data into two variables
 finally:
-    recipes_list = data["recipes_list"]
-    all_ingredients = data["all_ingredients"]
+    if 'file' in locals():
+        file.close()
+
+recipes_list = data["recipes_list"]
+all_ingredients = data["all_ingredients"]
 
 # Asks the user how many recipes they want to enter
 n = int(input("How many recipes would you like to enter?: "))
