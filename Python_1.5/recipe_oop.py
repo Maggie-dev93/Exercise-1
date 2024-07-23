@@ -9,41 +9,8 @@ class Recipe:
         self._cooking_time = cooking_time
         self._difficulty = None
         self.update_all_ingredients()  # Ensure all ingredients are tracked
-
-    def add_ingredients(self, *ingredients):
-        # Add additional ingredients to the recipe and update the global ingredient list
-        self._ingredients.extend(ingredients)
-        self.update_all_ingredients()
     
-    def search_ingredient(self, ingredient):
-        # Check if a particular ingredient is in the recipe
-        return ingredient in self._ingredients
-    
-    def update_all_ingredients(self):
-        # Add all ingredients of the current recipe to the class-wide set of all ingredients
-        for ingredient in self._ingredients:
-            Recipe.all_ingredients.add(ingredient)
-    
-    def calculate_difficulty(self):
-        # Determine the difficulty level of the recipe based on the cooking time and number of ingredients
-        num_ingredients = len(self._ingredients)
-        if self._cooking_time < 10:
-            if num_ingredients < 4:
-                self._difficulty = "Easy"
-            else:
-                self._difficulty = "Medium"
-        else:
-            if num_ingredients < 4:
-                self._difficulty = "Intermediate"
-            else:
-                self._difficulty = "Hard"
-    
-    def get_difficulty(self):
-        # Get the difficulty of the recipe, calculating it if not already done
-        if not self._difficulty:
-            self.calculate_difficulty()
-        return self._difficulty
-    
+    # Getters and Setters
     def get_name(self):
         # Return the name of the recipe
         return self._name
@@ -64,10 +31,45 @@ class Recipe:
         # Return the list of ingredients for the recipe
         return self._ingredients
     
+    def get_difficulty(self):
+        # Get the difficulty of the recipe, calculating it if not already done
+        if not self._difficulty:
+            self.calculate_difficulty()
+        return self._difficulty
+
+    # Class-specific methods
+    def add_ingredients(self, *ingredients):
+        # Add additional ingredients to the recipe and update the global ingredient list
+        self._ingredients.extend(ingredients)
+        self.update_all_ingredients()
+    
+    def search_ingredient(self, ingredient):
+        # Check if a particular ingredient is in the recipe (case-insensitive)
+        ingredient_lower = ingredient.lower()
+        return any(ingredient_lower == ingr.lower() for ingr in self._ingredients)
+    
+    def update_all_ingredients(self):
+        # Add all ingredients of the current recipe to the class-wide set of all ingredients
+        Recipe.all_ingredients.update(self._ingredients)
+    
+    def calculate_difficulty(self):
+        # Determine the difficulty level of the recipe based on the cooking time and number of ingredients
+        num_ingredients = len(self._ingredients)
+        if self._cooking_time < 10:
+            if num_ingredients < 4:
+                self._difficulty = "Easy"
+            else:
+                self._difficulty = "Medium"
+        else:
+            if num_ingredients < 4:
+                self._difficulty = "Intermediate"
+            else:
+                self._difficulty = "Hard"
+    
     def __str__(self):
         # Return a string representation of the recipe, including name, ingredients, cooking time, and difficulty
         return f"Recipe Name: {self._name}\nIngredients: {', '.join(self._ingredients)}\nCooking Time: {self._cooking_time} minutes\nDifficulty: {self.get_difficulty()}\n"
-    
+
 
 def recipe_search(data, search_term):
     # Search and print recipes that contain a specific ingredient
