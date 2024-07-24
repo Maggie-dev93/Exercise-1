@@ -13,17 +13,25 @@ def calculate_difficulty(cooking_time, ingredients):
         else:
             return 'Hard'
 
+def sanitize_ingredients(ingredients):
+    # Split by comma, trim spaces, and rejoin with ', '
+    return ', '.join([ingredient.strip() for ingredient in ingredients.split(',')])
+
 def create_recipe(conn, cursor):
     name = input("Enter the recipe name: ")
     cooking_time = int(input("Enter the cooking time (in minutes): "))
     ingredients = input("Enter the ingredients (comma-separated): ")
-    difficulty = calculate_difficulty(cooking_time, ingredients)
+    
+    # Sanitize the ingredients input
+    sanitized_ingredients = sanitize_ingredients(ingredients)
+    
+    difficulty = calculate_difficulty(cooking_time, sanitized_ingredients)
 
     insert_query = """
     INSERT INTO Recipes (name, ingredients, cooking_time, difficulty)
     VALUES (%s, %s, %s, %s)
     """
-    cursor.execute(insert_query, (name, ingredients, cooking_time, difficulty))
+    cursor.execute(insert_query, (name, sanitized_ingredients, cooking_time, difficulty))
     conn.commit()
     print("Recipe added successfully!")
 
@@ -71,8 +79,12 @@ def update_recipe(conn, cursor):
         cursor.execute(update_query, (new_value, recipe_id))
     elif column_to_update == 'ingredients':
         new_value = input("Enter the new ingredients (comma-separated): ")
+        
+        # Sanitize the new ingredients input
+        sanitized_ingredients = sanitize_ingredients(new_value)
+        
         update_query = "UPDATE Recipes SET ingredients = %s WHERE id = %s"
-        cursor.execute(update_query, (new_value, recipe_id))
+        cursor.execute(update_query, (sanitized_ingredients, recipe_id))
     elif column_to_update == 'cooking_time':
         new_value = int(input("Enter the new cooking time (in minutes): "))
         update_query = "UPDATE Recipes SET cooking_time = %s WHERE id = %s"
@@ -162,3 +174,4 @@ if __name__ == "__main__":
     create_database_and_table(conn, cursor)
     
     main_menu(conn, cursor)
+
