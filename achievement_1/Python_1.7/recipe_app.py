@@ -8,9 +8,8 @@ PASSWORD = 'password'
 HOSTNAME = 'localhost'
 DATABASE = 'task_database'
 
-# Create the engine
-engine = create_engine(f'mysql+pymysql://cf-python:password@localhost/task_database')
-
+engine = create_engine (f'mysql+pymysql://cf-python:password@localhost/t
+ask_database' )
 # Create a session maker
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -37,15 +36,17 @@ class Recipe(Base):
                 f"Difficulty: {self.difficulty}")
 
     def calculate_difficulty(self):
-        ingredient_count = len(self.ingredients.split(', '))
-        if ingredient_count <= 5 and self.cooking_time <= 30:
-            self.difficulty = 'Easy'
-        elif ingredient_count <= 10 and self.cooking_time <= 60:
-            self.difficulty = 'Medium'
-        elif ingredient_count <= 15 and self.cooking_time <= 90:
-            self.difficulty = 'Intermediate'
+        num_ingredients = len(self.ingredients.split(', '))
+        if self.cooking_time < 10:
+            if num_ingredients < 4:
+                return 'Easy'
+            else:
+                return 'Medium'
         else:
-            self.difficulty = 'Hard'
+            if num_ingredients < 4:
+                return 'Intermediate'
+            else:
+                return 'Hard'
 
     def return_ingredients_as_list(self):
         if self.ingredients == "":
@@ -54,25 +55,38 @@ class Recipe(Base):
 
 Base.metadata.create_all(engine)
 
-def create_recipe():
+def input_name():
     name = input("Enter recipe name (max 50 characters): ")
     while len(name) > 50:
         name = input("Name too long. Enter again (max 50 characters): ")
+    return name
 
+def input_ingredients():
     ingredients = []
     num_ingredients = int(input("How many ingredients? "))
     for _ in range(num_ingredients):
-        ingredient = input("Enter ingredient: ")
-        ingredients.append(ingredient)
-    ingredients_str = ', '.join(ingredients)
+        while True:
+            ingredient = input("Enter ingredient: ")
+            if any(char.isalpha() for char in ingredient) and not ingredient.isnumeric():
+                ingredients.append(ingredient)
+                break
+            else:
+                print("Invalid ingredient. It should not be purely numeric and must contain at least one letter. Please try again.")
+    return ', '.join(ingredients)
 
+def input_cooking_time():
     cooking_time = input("Enter cooking time in minutes: ")
     while not cooking_time.isnumeric():
         cooking_time = input("Invalid input. Enter cooking time in minutes: ")
-    cooking_time = int(cooking_time)
+    return int(cooking_time)
 
-    recipe_entry = Recipe(name=name, ingredients=ingredients_str, cooking_time=cooking_time)
-    recipe_entry.calculate_difficulty()
+def create_recipe():
+    name = input_name()
+    ingredients = input_ingredients()
+    cooking_time = input_cooking_time()
+
+    recipe_entry = Recipe(name=name, ingredients=ingredients, cooking_time=cooking_time)
+    recipe_entry.difficulty = recipe_entry.calculate_difficulty()
 
     session.add(recipe_entry)
     session.commit()
@@ -104,19 +118,17 @@ def search_by_ingredients():
         print(f"{i}. {ingredient}")
 
     choices = input("Enter the numbers of the ingredients you want to search for, separated by spaces: ")
-    
+
     # Remove any commas and split by spaces
     choices = choices.replace(',', ' ')
-    chosen_indices = []
-    for choice in choices.split():
-        try:
-            chosen_indices.append(int(choice) - 1)
-        except ValueError:
-            print(f"Invalid input '{choice}'. It should be a number.")
+    input_choices = choices.split()
 
-    # Ensure indices are within range
-    chosen_indices = [i for i in chosen_indices if 0 <= i < len(all_ingredients)]
+    # Check if all input choices are digits and within the allowed range
+    if not all(choice.isdigit() and 1 <= int(choice) <= len(all_ingredients) for choice in input_choices):
+        print("Invalid input. Please enter valid numbers corresponding to the ingredients list.")
+        return
 
+    chosen_indices = [int(choice) - 1 for choice in input_choices]
     search_ingredients = [all_ingredients[i] for i in chosen_indices]
 
     conditions = []
@@ -132,7 +144,6 @@ def search_by_ingredients():
     for recipe in recipes:
         print(recipe)
         print("-" * 40)
-
 
 def edit_recipe():
     if session.query(Recipe).count() == 0:
@@ -153,23 +164,16 @@ def edit_recipe():
 
     attribute = input("Which attribute would you like to edit? (1: Name, 2: Ingredients, 3: Cooking Time): ")
     if attribute == '1':
-        new_name = input("Enter new name (max 50 characters): ")
-        while len(new_name) > 50:
-            new_name = input("Name too long. Enter again (max 50 characters): ")
-        recipe_to_edit.name = new_name
+        recipe_to_edit.name = input_name()
     elif attribute == '2':
-        new_ingredients = input("Enter new ingredients, separated by commas: ")
-        recipe_to_edit.ingredients = new_ingredients
+        recipe_to_edit.ingredients = input_ingredients()
     elif attribute == '3':
-        new_cooking_time = input("Enter new cooking time in minutes: ")
-        while not new_cooking_time.isnumeric():
-            new_cooking_time = input("Invalid input. Enter cooking time in minutes: ")
-        recipe_to_edit.cooking_time = int(new_cooking_time)
+        recipe_to_edit.cooking_time = input_cooking_time()
     else:
         print("Invalid choice.")
         return
 
-    recipe_to_edit.calculate_difficulty()
+    recipe_to_edit.difficulty = recipe_to_edit.calculate_difficulty()
     session.commit()
     print("Recipe updated successfully!")
 
@@ -226,3 +230,4 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
