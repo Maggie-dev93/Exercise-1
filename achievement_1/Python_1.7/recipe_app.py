@@ -14,6 +14,7 @@ ask_database' )
 Session = sessionmaker(bind=engine)
 session = Session()
 
+
 Base = declarative_base()
 
 class Recipe(Base):
@@ -62,8 +63,16 @@ def input_name():
     return name
 
 def input_ingredients():
+    while True:
+        try:
+            num_ingredients = int(input("How many ingredients? "))
+            if num_ingredients <= 0:
+                raise ValueError
+            break
+        except ValueError:
+            print("Invalid input. Please enter a positive integer.")
+    
     ingredients = []
-    num_ingredients = int(input("How many ingredients? "))
     for _ in range(num_ingredients):
         while True:
             ingredient = input("Enter ingredient: ")
@@ -230,4 +239,3 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
-
